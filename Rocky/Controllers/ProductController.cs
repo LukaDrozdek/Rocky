@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Rocky.Data;
@@ -15,11 +13,10 @@ namespace Rocky.Controllers
     public class ProductController : Controller
     {
         private readonly ApplicationDbContext _db;
-        private readonly IWebHostEnvironment _webHostEnvironment;
-        public ProductController(ApplicationDbContext db, IWebHostEnvironment webHostEnvironment)
+
+        public ProductController(ApplicationDbContext db)
         {
             _db = db;
-            _webHostEnvironment = webHostEnvironment;
         }
 
 
@@ -81,39 +78,15 @@ namespace Rocky.Controllers
         //POST - UPSERT
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Upsert(ProductVM productVM)
+        public IActionResult Upsert(Category obj)
         {
             if (ModelState.IsValid)
             {
-                var files = HttpContext.Request.Form.Files;
-                string webRootPath = _webHostEnvironment.WebRootPath;
-
-                if (productVM.Product.Id == 0)
-                {
-                    //Creating
-                    string upload = webRootPath + WC.ImagePath;
-                    string fileName = Guid.NewGuid().ToString();
-                    string extension = Path.GetExtension(files[0].FileName);
-
-                    using (var fileStream = new FileStream(Path.Combine(upload, fileName + extension), FileMode.Create))
-                    {
-                        files[0].CopyTo(fileStream);
-                    }
-
-                    productVM.Product.Image = fileName + extension;
-
-                    _db.Product.Add(productVM.Product);
-                }
-                else
-                {
-                    //updating
-                }
-
-
+                _db.Category.Add(obj);
                 _db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            return View();
+            return View(obj);
 
         }
 
